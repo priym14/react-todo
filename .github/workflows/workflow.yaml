@@ -1,0 +1,35 @@
+name: 'Dockerhub'
+
+on:
+  pull_request:
+    types:
+     - closed
+    branches:
+     - 'main'
+
+env:
+    DOCKER_USER: ${{ secrets.DOCKER_USER }}
+    DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
+    DOCKER_REPO: ${{ secrets.DOCKER_REPO }}
+
+jobs:
+  build_and_push:
+   name: build and push image to Dockerhub
+   if: github.event.pull_request.merged == true
+   runs-on: ubuntu-latest
+   steps:
+     - name: checkout the repo
+# --> It is module which is created by a github to checkout a particular repo.
+       uses: actions/checkout@v1  
+
+     - name: Login to Docker hub
+       uses: docker/login-actions@v1
+       with:
+            username: ${{ secrets.DOCKER_USER }}
+            password: ${{ secrets.DOCKER_TOKEN }}
+
+     -  name: build and tag the docker image
+        run: docker build . --file Dockerfile --tag $DOCKER_USER/$DOCKER_REPO:$(date)
+
+     - name: pushing the docker image to docker hub
+       run: docker push $DOCKER_USER/$DOCKER_REPO:$(date)
